@@ -1,132 +1,102 @@
-#define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
-#include <cstdio>
-#include <vector>
-#include <string>
-#include <algorithm>
- 
+#include <bits/stdc++.h>
+
 using namespace std;
- 
-#define N 311
-#define INF 1000000010
- 
+
+#define mp make_pair
+#define pb push_back
+#define pi pair <int, int>
+#define forn(i, n) for(int i = 1; i <= (int)(n); i++)
+
+typedef long long ll;
+
+const int INF = 1000005;
+const int MAXN = 305;
+const int POW = 30;
+
 int n;
-int arr[N][N];
-bool used[N];
-int math[N], math2[N];
-int v[N], u[N];
-vector<int> g[N];
-bool used2[N];
-bool used3[N];
- 
-bool dfs(int v) {
-    if (used[v]) return false;
-    if (v == -1) return false;
-    used[v] = true;
-    for (size_t i = 0; i < g[v].size(); i++) {
-        int to = g[v][i];
-        if ((math[to] == -1) || dfs(math[to])) {
-            math[to] = v;
-            math2[v] = to;
-            return true;
-        }
-    }
-    return false;
- 
-}
- 
-void ddfs(int v) {
-    used2[v] = true;
-    for (size_t i = 0; i < g[v].size(); i++) {
-        used3[g[v][i]] = true;
-        int to = math[g[v][i]];
-        if (!used2[to]) ddfs(to);
-    }
-}
- 
-int hung() {
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            u[i] = min(u[i], arr[i][j]);
-        }
-    }
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            v[j] = min(v[j], arr[i][j] - u[i]);
-        }
-    }
-    while (1) {
-        for (int i = 0; i < n; i++) {
-            g[i].clear();
-            for (int j = 0; j < n; j++) {
-                if (u[i] + v[j] == arr[i][j]) {
-                    g[i].push_back(j);
-                }
-            }
-        }
-        for (int i = 0; i < n; i++) {
-            math[i] = -1;
-            math2[i] = -1;
-            used2[i] = 0;
-            used3[i] = 0;
-        }
- 
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                used[j] = false;
-            }
-            dfs(i);
-        }
-        for (int i = 0; i < n; i++) {
-            if (math2[i] == -1) {
-                if (!used2[i]) ddfs(i);
-            }
-        }
-        int d = INF;
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                if ((!used3[j]) && used2[i]) {
-                    d = min(d, arr[i][j] - u[i] - v[j]);
-                }
-            }
-        }
-        if (d == INF || d == 0) break;
-        for (int i = 0; i < n; i++) {
-            if (used2[i]) u[i] += d;
-        }
-        for (int i = 0; i < n; i++) {
-            if (used3[i]) v[i] -= d;
-        }
-    }
-    int res = 0;
-    for (int i = 0; i < n; i++) {
-        if (math[i] != -1) res += arr[math[i]][i];
-    }
-    return res;
-}
- 
-int main() {
+int u[MAXN], v[MAXN], p[MAXN], way[MAXN];
+int a[MAXN][MAXN];
+
+int main(){
+    cin.tie(0);
+    ios_base::sync_with_stdio(0);
     freopen("assignment.in", "r", stdin);
     freopen("assignment.out", "w", stdout);
-    cin.sync_with_stdio(0);
-    cout.sync_with_stdio(0);
+
     cin >> n;
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            cin >> arr[i][j];
+    memset(a[0], 0, sizeof(int) * (n + 1));
+
+    forn(i, n){
+        a[i][0] = 0;
+        forn(j, n){
+            cin >> a[i][j];
         }
     }
-    for (int i = 0; i < n; i++) {
-        u[i] = arr[i][i];
-        v[i] = arr[i][i];
-        math[i] = -1;
-        math2[i] = -1;
+
+    memset(u, 0, sizeof(int) * (n + 1));
+    memset(v, 0, sizeof(int) * (n + 1));
+    memset(way, 0, sizeof(int) * (n + 1));
+
+    int minv[MAXN];
+    bool used[MAXN];
+
+    forn(i, n){
+        p[0] = i;
+        int j0 = 0;
+
+        memset(minv, INF, sizeof(int) * (n + 1));
+        memset(used, false, sizeof(bool) * (n + 1));
+
+        do{
+            used[j0] = true;
+            int i0 = p[j0], delta = INF, j1;
+
+            forn(j, n){
+                if (!used[j]){
+
+                    int cur = a[i0][j]-u[i0]-v[j];
+                    if (cur < minv[j]){
+                        minv[j] = cur;
+                        way[j] = j0;
+                    }
+                    if (minv[j] < delta)
+                        delta = minv[j],  j1 = j;
+                }
+            }
+            for(int j=0; j <= n; j++){
+                if (used[j]){
+                    u[p[j]] += delta;
+                    v[j] -= delta;
+                }else minv[j] -= delta;
+            }
+            j0 = j1;
+
+        } while (p[j0] != 0);
+
+        do{
+            int j1 = way[j0];
+            p[j0] = p[j1];
+            j0 = j1;
+        } while (j0);
     }
-    cout << hung() << endl;
-    for (int i = 0; i < n; i++) {
-        if (math[i] != -1)
-            cout << math[i] + 1 << " " << i + 1 << endl;
+
+    vector<int> ans;
+    ans.resize(n + 1);
+    int answ = 0;
+
+    forn(i, n){
+        ans[p[i]] = i;
     }
-    system("pause");
+
+    forn(i, n){
+        answ += (ll)a[i][ans[i]];
+    }
+    cout << answ << endl;
+
+
+    forn(i, n){
+        cout << i << ' ' << ans[i] << endl;
+    }
+
     return 0;
 }
